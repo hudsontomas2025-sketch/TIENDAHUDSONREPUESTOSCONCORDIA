@@ -1,0 +1,61 @@
+from flask import Flask, render_template_string, request, jsonify
+
+app = Flask(__name__)
+
+# Base de datos simulada en memoria
+PRODUCTS = [
+    {"id": 1, "sku": "5U0-698-451", "name": "Pastillas de Freno Originales VW", "category": "Frenos", "stock": 18, "price": 54200, "applications": "Gol Trend / Voyage / Saveiro", "image": "https://images.unsplash.com/photo-1486006920555-c77dce18193b?auto=format&fit=crop&q=80&w=600"},
+    {"id": 2, "sku": "04E-115-561", "name": "Filtro de Aceite Original Volkswagen", "category": "Filtros", "stock": 35, "price": 16800, "applications": "Polo / Virtus / Nivus 1.6 MSI", "image": "https://images.unsplash.com/photo-1619642751034-765dfdf7c58e?auto=format&fit=crop&q=80&w=600"},
+    {"id": 3, "sku": "2H0-698-151", "name": "Kit Pastillas de Freno Delanteras", "category": "Frenos", "stock": 12, "price": 98500, "applications": "Volkswagen Amarok 2.0 / V6", "image": "https://images.unsplash.com/photo-1580273916550-e323be2ae537?auto=format&fit=crop&q=80&w=600"},
+]
+
+WORKSHOPS = [
+    {"id": 1, "name": "Taller Mecánico Oficial Hudson", "mechanic": "Carlos Hudson", "phone": "5491144556677", "tier": "Servicio Autorizado", "lastOrder": "Hoy, 10:30", "balance": 0},
+]
+
+TEMPLATE = """<!DOCTYPE html>
+<html lang="es" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hudson Repuestos - Postventa Oficial & ERP/CRM</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        vwblue: {
+                            50: '#f0f5ff', 100: '#e0ebff', 600: '#001e50', 700: '#001435', 800: '#000c20', 900: '#000710', 950: '#000308',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="h-full bg-vwblue-950 text-slate-100 font-sans antialiased selection:bg-blue-600 selection:text-white" x-data="vwApp()">
+
+    <header class="sticky top-0 z-50 bg-vwblue-900/95 backdrop-blur border-b border-blue-900/40 shadow-xl">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-20">
+                <div class="flex items-center space-x-4">
+                    <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-700 to-vwblue-950 flex items-center justify-center shadow-lg border border-blue-500/30">
+                        <span class="text-white font-black text-xl tracking-tighter">HR</span>
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-lg font-black tracking-widest text-white uppercase">Hudson Repuestos</span>
+                            <span class="bg-blue-600/30 text-blue-300 text-[10px] font-bold px-2 py-0.5 rounded border border-blue-500/30 uppercase">Postventa Oficial</span>
+                        </div>
+                        <p class="text-xs text-slate-400 font-medium">Repuestos Genuinos & Accesorios Homologados</p>
+                    </div>
+                </div>
+
+                <div class="hidden md:flex items-center bg-vwblue-950 p-1.5 rounded-2xl border border-blue-900/50 shadow-inner">
+                    <button @click="currentView = 'marketplace'" 
+                            :class="currentView === 'marketplace' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-400 hover:text-white'"
+                            class="flex items-center space-x-2 px-5 py-2.5 rounded-xl font-bold text-xs transition-all uppercase tracking-wider">
+                        <i class="fa-solid fa-store"></i><span>Tienda
